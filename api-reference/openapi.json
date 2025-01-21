@@ -1,72 +1,75 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
+    "title": "HydraAi API",
+    "summary": "Гидра всегда отращивает новую голову!",
+    "description": "\nChimichangApp API helps you do awesome stuff. 🚀\n\n## Items\n\n    You can **read items**.\n\n## Users\n\nYou will be able to:\n\n* **Create users** (_not implemented_).\n* **Read users** (_not implemented_).\n",
+    "contact": {
+      "name": "HydraAi",
+      "url": "https://hydraai.ru/"
     },
-    "version": "1.0.0"
+    "version": "0.0.1"
   },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "paths": {
-    "/plants": {
+    "/v1/users/profile": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
+        "tags": [
+          "Users"
         ],
+        "summary": "Get Profile",
+        "operationId": "get_profile_v1_users_profile_get",
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
+                  "$ref": "#/components/schemas/UserBalancePublic"
                 }
               }
             }
-          },
-          "400": {
-            "description": "Unexpected error",
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "tags": [
+          "Model"
+        ],
+        "summary": "Get Models",
+        "operationId": "get_models_v1_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/ModelList"
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/v1/chat/completions": {
       "post": {
-        "description": "Creates a new plant in the store",
+        "tags": [
+          "Creation"
+        ],
+        "summary": "Req Chat Completions",
+        "operationId": "req_chat_completions_v1_chat_completions_post",
         "requestBody": {
-          "description": "Plant to add to the store",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/ChatCompletionsForm"
               }
             }
           },
@@ -74,119 +77,687 @@
         },
         "responses": {
           "200": {
-            "description": "plant response",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
+                  "$ref": "#/components/schemas/ChatCompletionsResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "unexpected error",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
           }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
+        },
+        "security": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
+            "HTTPBearer": []
           }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     }
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
+      "ChatCompletionsForm": {
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/Message-Input"
+            },
+            "type": "array",
+            "title": "Messages",
+            "description": "Сообщения"
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "description": "Модель к которой вы хотите отправть запрос",
+            "examples": [
+              "llama-3-8b"
+            ]
           },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
+          "max_tokens": {
             "type": "integer",
-            "format": "int32"
+            "title": "Max Tokens",
+            "description": "Максимально количество токенов",
+            "default": 0
           },
-          "message": {
-            "type": "string"
+          "temperature": {
+            "type": "number",
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Temperature",
+            "description": "Температура",
+            "default": 0.7
+          },
+          "top_p": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Top P",
+            "description": "top_p",
+            "default": 0
+          },
+          "stream": {
+            "type": "boolean",
+            "title": "Stream",
+            "description": "Получать ответы в Стрим формате или нет",
+            "default": false
           }
-        }
+        },
+        "type": "object",
+        "required": [
+          "messages",
+          "model"
+        ],
+        "title": "ChatCompletionsForm"
+      },
+      "ChatCompletionsResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "object": {
+            "type": "string",
+            "title": "Object"
+          },
+          "created": {
+            "type": "integer",
+            "title": "Created"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/Choice"
+            },
+            "type": "array",
+            "title": "Choices"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Usage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "created",
+          "model",
+          "choices",
+          "usage"
+        ],
+        "title": "ChatCompletionsResponse"
+      },
+      "Choice": {
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/Message-Output"
+          },
+          "logprobs": {
+            "anyOf": [
+              {
+
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logprobs"
+          },
+          "finish_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finish Reason"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "index"
+        ],
+        "title": "Choice"
+      },
+      "ContentItem": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageUrl"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "ContentItem"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ImageUrl": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "ImageUrl"
+      },
+      "LLMModelObject": {
+        "type": "string",
+        "enum": [
+          "model",
+          "proxy"
+        ],
+        "title": "LLMModelObject"
+      },
+      "LLMModelPricingType": {
+        "type": "string",
+        "enum": [
+          "tokens",
+          "image",
+          "time",
+          "characters",
+          "request"
+        ],
+        "title": "LLMModelPricingType"
+      },
+      "LLMModelType": {
+        "type": "string",
+        "enum": [
+          "chat",
+          "vision",
+          "language",
+          "image",
+          "audio"
+        ],
+        "title": "LLMModelType"
+      },
+      "Message-Input": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "Роль",
+            "examples": [
+              "user"
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ContentItem"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Content",
+            "description": "Контент",
+            "examples": [
+              "Что такое небо?"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "Message"
+      },
+      "Message-Output": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "Роль",
+            "examples": [
+              "user"
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ContentItem"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Content",
+            "description": "Контент",
+            "examples": [
+              "Что такое небо?"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "Message"
+      },
+      "ModelList": {
+        "properties": {
+          "object": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object",
+            "default": "list"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/UserModel"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "ModelList"
+      },
+      "Usage": {
+        "properties": {
+          "prompt_tokens": {
+            "type": "integer",
+            "title": "Prompt Tokens"
+          },
+          "completion_tokens": {
+            "type": "integer",
+            "title": "Completion Tokens"
+          },
+          "total_tokens": {
+            "type": "integer",
+            "title": "Total Tokens"
+          },
+          "total_time": {
+            "type": "number",
+            "title": "Total Time"
+          },
+          "cost_request": {
+            "type": "number",
+            "title": "Cost Request"
+          },
+          "free_request": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Request"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens",
+          "total_time",
+          "cost_request",
+          "free_request"
+        ],
+        "title": "Usage"
+      },
+      "UserBalancePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "user_type": {
+            "type": "string",
+            "title": "User Type"
+          },
+          "last_used_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Used At"
+          },
+          "balance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Balance"
+          },
+          "total_balance_added": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Total Balance Added"
+          },
+          "free_requests": {
+            "type": "integer",
+            "title": "Free Requests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_type",
+          "last_used_at",
+          "balance",
+          "total_balance_added",
+          "free_requests"
+        ],
+        "title": "UserBalancePublic"
+      },
+      "UserModel": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "object": {
+            "$ref": "#/components/schemas/LLMModelObject"
+          },
+          "created": {
+            "type": "integer",
+            "title": "Created"
+          },
+          "context": {
+            "type": "integer",
+            "title": "Context"
+          },
+          "type": {
+            "$ref": "#/components/schemas/LLMModelType"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "img": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Img"
+          },
+          "owned_by": {
+            "type": "string",
+            "title": "Owned By"
+          },
+          "proxy_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy To"
+          },
+          "pricing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserModelPricing"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "alt_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "created",
+          "context",
+          "type",
+          "active",
+          "owned_by"
+        ],
+        "title": "UserModel"
+      },
+      "UserModelPricing": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/LLMModelPricingType",
+            "default": "tokens"
+          },
+          "in_cost_per_million": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "In Cost Per Million"
+          },
+          "out_cost_per_million": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Out Cost Per Million"
+          },
+          "cost_per_million": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Million"
+          },
+          "cost_per_image": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Image"
+          },
+          "cost_per_second": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Second"
+          },
+          "cost_per_request": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Request"
+          },
+          "free_requests": {
+            "type": "boolean",
+            "title": "Free Requests",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "UserModelPricing"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
+      "HTTPBearer": {
         "type": "http",
         "scheme": "bearer"
       }
